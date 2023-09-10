@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wing-carrier"
+version = "0.9.0"
+authors = [
+  { name="Nathaniel A", email="developer@3dcg.guru" },
+]
+description = "Send commands from Wing-IDE to DCC apps or between DCC apps"
+readme = "README.md"
+requires-python = ">=3.4"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "psutil",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Nathanieljla/wing-carrier"

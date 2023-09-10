@@ -6,20 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-
 import wingapi
-
-
-print('User site:{}'.format(site.USER_SITE))
-
-
-#TODO: What's the best way to get access psutil packaage?    
-global_site_package = r'C:\Users\natha\AppData\Roaming\Python\Python310\site-packages'
-if global_site_package not in sys.path:
-    sys.path.append(global_site_package)
-
-import psutil
-
 
 #we need to dynamically add our dispatchers package
 _file_path = os.path.dirname(__file__)
@@ -28,13 +15,30 @@ _file_path = os.path.dirname(_file_path)
 if _file_path not in sys.path:
     sys.path.append(_file_path)
     
-#_file_path = os.path.join(_file_path, 'site-packages')
-#if _file_path not in sys.path:
-    #sys.path.append(_file_path)    
-
 import pigeons
 import pigeons.maya
 import pigeons.cascadeur
+sys.path.remove(_file_path)
+
+
+PSUTILS_EXISTS = False
+try:
+    import psutil
+    print("wing-carrier: psutil found")
+    PSUTILS_EXISTS = True
+except:
+    _parent_dir = os.path.dirname(_file_path)
+    _psutils_dir = os.path.exists(_parent_dir, 'psutil')
+    if (os.path.exists(_psutils_dir)):
+        sys.path.append(_parent_dir)
+        print('wing-carrier: found psutil package at sibling location')
+        import psutil
+        PSUTILS_EXISTS = True
+        sys.path.remove(_parent_dir)
+    else:
+        print('wing-carrier: psutil missing')
+        PSUTILS_EXISTS = False
+        
 
 
 CARRIERS = [
@@ -48,11 +52,8 @@ be used.
 """
 
 _CLASS_INSTANCE_MAPPING = {item.__class__.__name__: item for item in CARRIERS}
-
 _ACTIVE_CARRIER: pigeons.pigeon.Pigeon = None
-
 _DEBUG_CARRIER: pigeons.pigeon.Pigeon = None
-
 
 
 def _get_document_text():
@@ -221,18 +222,15 @@ def dispatch_carrier(carrier: pigeons.pigeon.Pigeon = None):
 def dispatch_maya():
     dispatch_carrier(carrier=_CLASS_INSTANCE_MAPPING['MayaPigeon'])
 
-    
 
 def dispatch_cascadeur():
     dispatch_carrier(carrier=_CLASS_INSTANCE_MAPPING['CascadeurPigeon'])
         
 
 
-
-
 #-----------WIN-IDE signal slots for active debug is below this line--------------
       
-def _get_debug_process(current_run_state=None) -> psutil.Process:
+def _get_debug_process(current_run_state=None) :
     if current_run_state is None:
         debugger = wingapi.gApplication.GetDebugger()
         current_run_state = debugger.GetCurrentRunState()
@@ -242,8 +240,13 @@ def _get_debug_process(current_run_state=None) -> psutil.Process:
         return None
     
     pid = current_run_state.GetProcessID()
-    process: psutil.Process = psutil.Process(pid=pid)
-    print('connected to PID:{}   name:{}   exe:{}'.format(process.pid, process.name(), process.exe()))
+    process = None
+    
+    if PSUTILS_EXISTS:
+        process: psutil.Process = psutil.Process(pid=pid)
+        print('connected to PID:{}   name:{}   exe:{}'.format(process.pid, process.name(), process.exe()))
+    else:
+        print('wing-carrier: psutils missing')
 
     return process
 
@@ -253,15 +256,17 @@ def _debugger_connected(*args, **kwargs):
     global _DEBUG_CARRIER
     if args:
         process = _get_debug_process(args[0])
-        _DEBUG_CARRIER = _find_process_owner(process)
-        #_activate_by_process(process)
+        if process is not None:
+            _DEBUG_CARRIER = _find_process_owner(process)
+        else:
+            _DEBUG_CARRIER = None
 
 
     
 def _debugger_changed(*args, **kwargs):
     global _DEBUG_CARRIER
     if not args:
-        _DEBUG_CARRIER = None #_activate_by_process(None)
+        _DEBUG_CARRIER = None
 
 
 
