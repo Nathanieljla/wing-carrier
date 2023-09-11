@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wing-carrier"
-version = "0.9.0"
+version = "0.9.1"
 authors = [
   { name="Nathaniel A", email="developer@3dcg.guru" },
 ]
@@ -18,6 +18,11 @@ classifiers = [
 
 dependencies = [
     "psutil",
+]
+
+packages = [
+    { include = "wingcarrier" },
+    { include = "wingcarrier/**/*.py" },
 ]
 
 [project.urls]
