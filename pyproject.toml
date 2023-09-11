@@ -22,3 +22,7 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/Nathanieljla/wing-carrier"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
