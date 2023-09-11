@@ -20,8 +20,9 @@ dependencies = [
     "psutil",
 ]
 
-[tool.setuptools]
-packages = ["wingcarrier"]
+packages = [
+    { include = "wingcarrier" },
+]
 
 [project.urls]
 "Homepage" = "https://github.com/Nathanieljla/wing-carrier"
