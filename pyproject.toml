@@ -20,6 +20,8 @@ dependencies = [
     "psutil",
 ]
 
+[tool.setuptools]
+packages = ["wingcarrier"]
 
 [project.urls]
 "Homepage" = "https://github.com/Nathanieljla/wing-carrier"
