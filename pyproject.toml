@@ -1,7 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "wing-carrier"
@@ -20,11 +19,6 @@ classifiers = [
 dependencies = [
     "psutil",
 ]
-
-
-[tool.hatch.build.targets.wheel]
-packages = ["wingcarrier"]
-
 
 [project.urls]
 "Homepage" = "https://github.com/Nathanieljla/wing-carrier"
