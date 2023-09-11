@@ -22,10 +22,8 @@ dependencies = [
 ]
 
 
-[tool.hatch.build]
-include = [
-  "wingcarrier/*.py",
-]
+[tool.hatch.build.targets.wheel]
+packages = ["wingcarrier"]
 
 
 [project.urls]
