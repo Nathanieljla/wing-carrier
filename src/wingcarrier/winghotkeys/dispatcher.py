@@ -28,7 +28,7 @@ try:
     PSUTILS_EXISTS = True
 except:
     _parent_dir = os.path.dirname(_file_path)
-    _psutils_dir = os.path.exists(_parent_dir, 'psutil')
+    _psutils_dir = os.path.join(_parent_dir, 'psutil')
     if (os.path.exists(_psutils_dir)):
         sys.path.append(_parent_dir)
         print('wing-carrier: found psutil package at sibling location')

@@ -1,16 +1,27 @@
+import os
+import sys
 import inspect
 import subprocess
 
-PSUTIL_EXISTS = False
+PSUTILS_EXISTS = False
 try:
-    
     import psutil
-    PSUTIL_EXISTS = True
+    print("wing-carrier: psutil found")
+    PSUTILS_EXISTS = True
 except:
-    #this will fail when using the module in cascadeur
-    print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
-    pass
-
+    _pigeons_path = os.path.dirname(__file__)
+    _wingcarrier_path = os.path.dirname(_pigeons_path)    
+    _parent_dir = os.path.dirname(_wingcarrier_path)
+    _psutils_dir = os.path.join(_parent_dir, 'psutil')
+    if (os.path.exists(_psutils_dir)):
+        sys.path.append(_parent_dir)
+        print('wing-carrier: found psutil package at sibling location')
+        import psutil
+        PSUTILS_EXISTS = True
+        sys.path.remove(_parent_dir)
+    else:
+        print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
+        PSUTILS_EXISTS = False
 
 
 CSC_EXISTS = False
@@ -54,7 +65,9 @@ class CascadeurPigeon(Pigeon):
     
     def get_running_path(self):
         """Return the exe path of any running instance of cascadeur"""
-
+        if not PSUTILS_EXISTS:
+            return ''
+        
         #we might already have a cached pid from wing.  let's try it first.
         if self.known_pid:
             try:
