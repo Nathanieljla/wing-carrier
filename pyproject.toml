@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wing-carrier"
-version = "0.9.5"
+version = "0.9.6"
 authors = [
   { name="Nathaniel A", email="developer@3dcg.guru" },
 ]
@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "psutil",
+    "psutil==5.9.3", #5.9.5 is crashing on a dll when installing at a custom location
 ]
 
 [project.urls]
