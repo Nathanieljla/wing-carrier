@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "psutil==5.9.3", #5.9.5 is crashing on a dll when installing at a custom location
+    "psutil",
 ]
 
 [project.urls]

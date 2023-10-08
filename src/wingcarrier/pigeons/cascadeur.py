@@ -16,9 +16,14 @@ except:
     if (os.path.exists(_psutils_dir)):
         sys.path.append(_parent_dir)
         print('wing-carrier: found psutil package at sibling location')
-        import psutil
-        PSUTILS_EXISTS = True
-        sys.path.remove(_parent_dir)
+        try:
+            #I'm having psutils fail during __init__ so let's catch that
+            import psutil
+            PSUTILS_EXISTS = True
+        except:
+            pass
+        finally:
+            sys.path.remove(_parent_dir)
     else:
         print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
         PSUTILS_EXISTS = False
