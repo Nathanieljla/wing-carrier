@@ -1,5 +1,5 @@
 
-VERSION = (0, 9, 5)
+VERSION = (0, 9, 6)
 
 __author__ = "Nathaniel Albright"
 __email__ = "developer@3dcg.guru"
