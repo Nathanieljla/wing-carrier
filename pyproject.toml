@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "psutil==5.9.3",
+    "psutil",
 ]
 
 [project.urls]
