@@ -41,10 +41,9 @@ else:
 # /Applications/WingPro.app.  When set to None, the environment variable 
 # WINGHOME is used instead.  
 WINGHOME = None
-for path in [r"C:\Program Files\Wing Pro 9",
-                 r"C:\Program Files\Wing Pro 8",
-                 r"C:\Program Files\Wing Pro 7"
-                 ]:
+for path in [r"C:\Program Files\Wing Pro 10", r"C:\Program Files\Wing Pro 9",
+             r"C:\Program Files\Wing Pro 8", r"C:\Program Files\Wing Pro 7" ]:
+  
   if os.path.exists(path):
     WINGHOME = path
     break
