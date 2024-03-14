@@ -5,41 +5,41 @@ import subprocess
 import platform
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
-PSUTILS_EXISTS = False
+#PSUTILS_EXISTS = False
 
-try:
-    import psutil
-    print("wing-carrier: psutil found")
-    PSUTILS_EXISTS = True
-except:
-    _pigeons_path = os.path.dirname(__file__)
-    _wingcarrier_path = os.path.dirname(_pigeons_path)    
-    _parent_dir = os.path.dirname(_wingcarrier_path)
-    _psutils_dir = os.path.join(_parent_dir, 'psutil')
-    if (os.path.exists(_psutils_dir)):
-        sys.path.append(_parent_dir)
-        print('wing-carrier: found psutil package at sibling location')
-        try:
-            #I'm having psutils fail during __init__ so let's catch that
-            import psutil
-            PSUTILS_EXISTS = True
-        except:
-            print("psutils crashed on import. CascadeurPigeon functionality limited to receiving")
-        finally:
-            sys.path.remove(_parent_dir)
-    else:
-        if not IS_WINDOWS:
-            print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
-        PSUTILS_EXISTS = False
+#try:
+    #import psutil
+    #print("wing-carrier: psutil found")
+    #PSUTILS_EXISTS = True
+#except:
+    #_pigeons_path = os.path.dirname(__file__)
+    #_wingcarrier_path = os.path.dirname(_pigeons_path)    
+    #_parent_dir = os.path.dirname(_wingcarrier_path)
+    #_psutils_dir = os.path.join(_parent_dir, 'psutil')
+    #if (os.path.exists(_psutils_dir)):
+        #sys.path.append(_parent_dir)
+        #print('wing-carrier: found psutil package at sibling location')
+        #try:
+            ##I'm having psutils fail during __init__ so let's catch that
+            #import psutil
+            #PSUTILS_EXISTS = True
+        #except:
+            #print("psutils crashed on import. CascadeurPigeon functionality limited to receiving")
+        #finally:
+            #sys.path.remove(_parent_dir)
+    #else:
+        #if not IS_WINDOWS:
+            #print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
+        #PSUTILS_EXISTS = False
 
 
-CSC_EXISTS = False
-try:
-    import csc
-    CSC_EXISTS = True
-except:
-    #this will fail when using the module in wing
-    pass
+#CSC_EXISTS = False
+#try:
+    #import csc
+    #CSC_EXISTS = True
+#except:
+    ##this will fail when using the module in wing
+    #pass
 
 
 from .pigeon import *
@@ -72,12 +72,7 @@ class CascadeurPigeon(Pigeon):
         return('cascadeur_code.txt')
     
     
-    
     def _get_windows_exe_path(self):
-        if not IS_WINDOWS:
-            print("exe path can't be found on non-windows Operating system without the use of psutil")
-            return ''
-        
         import winreg
         casc_path = ''
         try:
@@ -93,26 +88,32 @@ class CascadeurPigeon(Pigeon):
     def get_running_path(self):
         """Return the exe path of any running instance of cascadeur"""
         
-        if not PSUTILS_EXISTS:
+        if IS_WINDOWS:
             return self._get_windows_exe_path()
+        else:
+            print("Cascadeur exe path can't be found on non-windows Operating system")
+            return ''            
         
-        #we might already have a cached pid from wing.  let's try it first.
-        if self.known_pid:
-            try:
-                process = psutil.Process(pid=self.known_pid)
-                return process.exe()
-            except:
-                self.known_pid = None
+        #if not PSUTILS_EXISTS:
+            #return self._get_windows_exe_path()
+        
+        ##we might already have a cached pid from wing.  let's try it first.
+        #if self.known_pid:
+            #try:
+                #process = psutil.Process(pid=self.known_pid)
+                #return process.exe()
+            #except:
+                #self.known_pid = None
 
 
-        #let's search the running processes for cascadeur
-        #ls: list = [] # since many processes can have same name it's better to make list of them
-        for p in psutil.process_iter(['name', 'pid']):
-            if p.info['name'] == 'cascadeur.exe':
-                #we can only have one running process of cascadeur
-                return psutil.Process(p.info['pid']).exe()
+        ##let's search the running processes for cascadeur
+        ##ls: list = [] # since many processes can have same name it's better to make list of them
+        #for p in psutil.process_iter(['name', 'pid']):
+            #if p.info['name'] == 'cascadeur.exe':
+                ##we can only have one running process of cascadeur
+                #return psutil.Process(p.info['pid']).exe()
 
-        return ''
+        #return ''
     
     
     def process_id(self, process_name):
@@ -146,13 +147,15 @@ class CascadeurPigeon(Pigeon):
         if not exe_path:
             return False
         
-        elif not PSUTILS_EXISTS:
-            #This must be a windows machine and the exe was found via the
-            #registry let's make sure the process is running
-            return self.process_id('cascadeur.exe') is not None
+        return self.process_id('cascadeur.exe') is not None
         
-        else:
-            return True
+        #elif not PSUTILS_EXISTS:
+            ##This must be a windows machine and the exe was found via the
+            ##registry let's make sure the process is running
+            #return self.process_id('cascadeur.exe') is not None
+        
+        #else:
+            #return True
     
     
     def owns_process(self, process):
