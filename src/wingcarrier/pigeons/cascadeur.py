@@ -3,6 +3,7 @@ import sys
 import inspect
 import subprocess
 import platform
+import re
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
 #PSUTILS_EXISTS = False
@@ -33,13 +34,13 @@ IS_WINDOWS = 'windows' in platform.platform().lower()
         #PSUTILS_EXISTS = False
 
 
-#CSC_EXISTS = False
-#try:
-    #import csc
-    #CSC_EXISTS = True
-#except:
-    ##this will fail when using the module in wing
-    #pass
+CSC_EXISTS = False
+try:
+    import csc
+    CSC_EXISTS = True
+except:
+    #this will fail when not using the module in wing
+    pass
 
 
 from .pigeon import *
@@ -49,15 +50,24 @@ class CascadeurPigeon(Pigeon):
     def __init__(self, *args, **kwargs):
         super(CascadeurPigeon, self).__init__(*args, **kwargs)
         self.known_pid = None
-
+        
+       
+    @staticmethod 
+    def decode(output):
+        try:
+            return output.decode()
+        except UnicodeDecodeError:
+            return output.decode('latin-1')
+        
 
     @staticmethod
     def run_shell_command(cmd):
+        #https://stackoverflow.com/questions/2596714/why-does-python-print-unicode-characters-when-the-default-encoding-is-ascii
         #NOTE: don't use subprocess.check_output(cmd), because in python 3.6+ this error's with a 120 code.
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
-        stdout = stdout.decode()
-        stderr = stderr.decode()
+        stdout = CascadeurPigeon.decode(stdout) #.decode()
+        stderr = CascadeurPigeon.decode(stderr) #.decode()
 
         print(stdout)
         print(stderr)
@@ -121,20 +131,25 @@ class CascadeurPigeon(Pigeon):
         
         import subprocess
         call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
-        # use buildin check_output right away
-        output = subprocess.check_output(call).decode()
-    
-        # check in last line for process name
-        last_line = output.split('\r\n')
-        if len(last_line) < 3:
-            return None
+
+        output = subprocess.check_output(call)
+        output = self.decode(output)
         
-        #first result is 3 because the headers
-        #or in case more than one, you can use the last one using [-2] index
-        data = " ".join(last_line[3].split()).split()  
-    
-        #return a list with the name and pid 
-        return data[1] 
+        search_expression = re.compile(r'{}\D*(?P<pid>\d+)(.*)'.format(process_name))
+        pids = []
+        for match in re.finditer(search_expression, output):
+            group_dict = match.groupdict()
+            pid = group_dict.get('pid', '')
+            if pid:
+                pids.append(int(pid))
+        
+        pid = None        
+        if pids:
+            pids.sort()
+            pid = pids[0]
+            
+        return pid
+        
 
 
     def can_dispatch(self):
