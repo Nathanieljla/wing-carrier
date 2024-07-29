@@ -55,7 +55,7 @@ class CascadeurPigeon(Pigeon):
     @staticmethod 
     def decode(output):
         try:
-            return output.decode()
+            return output.decode('utf-8')
         except UnicodeDecodeError:
             return output.decode('latin-1')
         
@@ -130,7 +130,7 @@ class CascadeurPigeon(Pigeon):
         """Returns the process ID of the running cascadeur.exe or None"""
         
         import subprocess
-        call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
+        call = 'TASKLIST', '/nh', '/FI', 'imagename eq %s' % process_name
 
         output = subprocess.check_output(call)
         output = self.decode(output)
