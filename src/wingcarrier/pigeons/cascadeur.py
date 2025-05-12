@@ -3,7 +3,6 @@ import sys
 import inspect
 import subprocess
 import platform
-import re
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
 #PSUTILS_EXISTS = False
@@ -34,13 +33,13 @@ IS_WINDOWS = 'windows' in platform.platform().lower()
         #PSUTILS_EXISTS = False
 
 
-CSC_EXISTS = False
-try:
-    import csc
-    CSC_EXISTS = True
-except:
-    #this will fail when not using the module in wing
-    pass
+#CSC_EXISTS = False
+#try:
+    #import csc
+    #CSC_EXISTS = True
+#except:
+    ##this will fail when using the module in wing
+    #pass
 
 
 from .pigeon import *
@@ -51,8 +50,8 @@ class CascadeurPigeon(Pigeon):
         super(CascadeurPigeon, self).__init__(*args, **kwargs)
         self.known_pid = None
         
-       
-    @staticmethod 
+        
+    @staticmethod
     def decode(output):
         try:
             return output.decode('utf-8')
@@ -62,12 +61,11 @@ class CascadeurPigeon(Pigeon):
 
     @staticmethod
     def run_shell_command(cmd):
-        #https://stackoverflow.com/questions/2596714/why-does-python-print-unicode-characters-when-the-default-encoding-is-ascii
         #NOTE: don't use subprocess.check_output(cmd), because in python 3.6+ this error's with a 120 code.
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
-        stdout = CascadeurPigeon.decode(stdout) #.decode()
-        stderr = CascadeurPigeon.decode(stderr) #.decode()
+        stdout = CascadeurPigeon.decode(stdout)
+        stderr = CascadeurPigeon.decode(stderr)
 
         print(stdout)
         print(stderr)
@@ -95,62 +93,47 @@ class CascadeurPigeon(Pigeon):
         return casc_path.strip("\"")
     
     
+    
+    def get_own_process(self):
+        return self.process_id('cascadeur.exe')
+    
+    
     def get_running_path(self):
         """Return the exe path of any running instance of cascadeur"""
         
         if IS_WINDOWS:
-            return self._get_windows_exe_path()
+            pid = self.get_own_process()
+            if pid is None:
+                raise ProcessLookupError
+            
+            path = self.get_exe_path_from_pid(pid)
+            return path
+            #return self._get_windows_exe_path()
         else:
             print("Cascadeur exe path can't be found on non-windows Operating system")
             return ''            
         
-        #if not PSUTILS_EXISTS:
-            #return self._get_windows_exe_path()
+        ##if not PSUTILS_EXISTS:
+            ##return self._get_windows_exe_path()
         
-        ##we might already have a cached pid from wing.  let's try it first.
-        #if self.known_pid:
-            #try:
-                #process = psutil.Process(pid=self.known_pid)
-                #return process.exe()
-            #except:
-                #self.known_pid = None
+        ###we might already have a cached pid from wing.  let's try it first.
+        ##if self.known_pid:
+            ##try:
+                ##process = psutil.Process(pid=self.known_pid)
+                ##return process.exe()
+            ##except:
+                ##self.known_pid = None
 
 
-        ##let's search the running processes for cascadeur
-        ##ls: list = [] # since many processes can have same name it's better to make list of them
-        #for p in psutil.process_iter(['name', 'pid']):
-            #if p.info['name'] == 'cascadeur.exe':
-                ##we can only have one running process of cascadeur
-                #return psutil.Process(p.info['pid']).exe()
+        ###let's search the running processes for cascadeur
+        ###ls: list = [] # since many processes can have same name it's better to make list of them
+        ##for p in psutil.process_iter(['name', 'pid']):
+            ##if p.info['name'] == 'cascadeur.exe':
+                ###we can only have one running process of cascadeur
+                ##return psutil.Process(p.info['pid']).exe()
 
-        #return ''
+        ##return ''
     
-    
-    def process_id(self, process_name):
-        """Returns the process ID of the running cascadeur.exe or None"""
-        
-        import subprocess
-        call = 'TASKLIST', '/nh', '/FI', 'imagename eq %s' % process_name
-
-        output = subprocess.check_output(call)
-        output = self.decode(output)
-        
-        search_expression = re.compile(r'{}\D*(?P<pid>\d+)(.*)'.format(process_name))
-        pids = []
-        for match in re.finditer(search_expression, output):
-            group_dict = match.groupdict()
-            pid = group_dict.get('pid', '')
-            if pid:
-                pids.append(int(pid))
-        
-        pid = None        
-        if pids:
-            pids.sort()
-            pid = pids[0]
-            
-        return pid
-        
-
 
     def can_dispatch(self):
         """Check if conditions are right to send code to application
@@ -158,11 +141,13 @@ class CascadeurPigeon(Pigeon):
         can_dispatch() is used to determine what dispatcher wing will use
         with when there's no active dispatcher found.
         """
-        exe_path = self.get_running_path()
-        if not exe_path:
-            return False
+        return self.get_own_process() is not None
         
-        return self.process_id('cascadeur.exe') is not None
+        #exe_path = self.get_running_path()
+        #if not exe_path:
+            #return False
+        
+        #return self.process_id('cascadeur.exe') is not None
         
         #elif not PSUTILS_EXISTS:
             ##This must be a windows machine and the exe was found via the

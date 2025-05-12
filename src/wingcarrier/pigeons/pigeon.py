@@ -1,6 +1,8 @@
 import sys
 import os
 import importlib
+import subprocess
+
 import __main__
 
 class Pigeon(object):
@@ -156,5 +158,53 @@ class Pigeon(object):
             bool : True if the command was successfully sent.        
         """
         raise NotImplementedError
+    
+    
+    @staticmethod
+    def get_exe_path_from_pid(pid):
+        """
+        Retrieves the executable path of a process given its PID using subprocess.
+    
+        Args:
+            pid: The process ID (integer).
+    
+        Returns:
+            The executable path (string) if found, otherwise None.
+        """
+        try:
+            command = f'wmic process where processid={pid} get executablepath /value'
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            output_lines = result.stdout.strip().split('\n')
+            
+            for line in output_lines:
+                if 'ExecutablePath=' in line:
+                    exe_path = line.split('=')[1].strip()
+                    return exe_path
+        except subprocess.CalledProcessError:
+            return None
+        except FileNotFoundError:
+            return None
+        return None
+    
+    @staticmethod
+    def process_id(process_name):
+        """Returns the process ID of the running cascadeur.exe or None"""
+        
+        import subprocess
+        call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
+        # use buildin check_output right away
+        output = subprocess.check_output(call).decode()
+    
+        # check in last line for process name
+        last_line = output.split('\r\n')
+        if len(last_line) < 3:
+            return None
+        
+        #first result is 3 because the headers
+        #or in case more than one, you can use the last one using [-2] index
+        data = " ".join(last_line[3].split()).split()  
+    
+        #return a list with the name and pid 
+        return data[1]     
 
 
