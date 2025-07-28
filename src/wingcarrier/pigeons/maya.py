@@ -145,7 +145,7 @@ class MayaPigeon(Pigeon):
         try:
             command = u"import wingcarrier.pigeons; wingcarrier.pigeons.MayaPigeon.receive(\'{}\',\'{}\',\'{}\')".format(module_path, doc_type, file_path)
             print(command)
-            m_socket.send(command.encode())
+            m_socket.send( MayaPigeon.encode(command) )
         except Exception as e:
             print("Maya socket errored:{}".format(e))
             
@@ -162,7 +162,7 @@ class MayaPigeon(Pigeon):
         success = False
         try:
             #command = u'python("{}")'.format(command_string)
-            m_socket.send(command_string.encode())
+            m_socket.send(MayaPigeon.encode(command_string))
             success = True
         except Exception as e:
             print("Maya socket errored:{}".format(e))

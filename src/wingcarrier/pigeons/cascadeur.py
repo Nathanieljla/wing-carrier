@@ -50,14 +50,6 @@ class CascadeurPigeon(Pigeon):
         super(CascadeurPigeon, self).__init__(*args, **kwargs)
         self.known_pid = None
         
-        
-    @staticmethod
-    def decode(output):
-        try:
-            return output.decode('utf-8')
-        except UnicodeDecodeError:
-            return output.decode('latin-1')
-        
 
     @staticmethod
     def run_shell_command(cmd):

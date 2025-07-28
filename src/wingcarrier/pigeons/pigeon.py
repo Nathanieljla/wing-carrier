@@ -10,6 +10,24 @@ class Pigeon(object):
         pass
     
     
+    @staticmethod
+    def decode(output):
+        try:
+            return output.decode('utf-8')
+        except UnicodeDecodeError:
+            return output.decode('latin-1')
+        
+        
+        
+    @staticmethod
+    def encode(output):
+        try:
+            return output.encode('utf-8')
+        except UnicodeEncodeError:
+            return output.encode('latin-1')        
+        
+    
+    
     @classmethod
     def get_temp_filename(cls):
         """the name of the temporary file wing will use in write_temp_file()
@@ -39,7 +57,7 @@ class Pigeon(object):
         f = open(temp_path, "wb")
     
         print('writing temp file:{}'.format(temp_path))
-        f.write(txt.encode())
+        f.write(Pigeon.encode(txt))
     
         f.close()
 
@@ -62,7 +80,7 @@ class Pigeon(object):
             # execute the file contents in Maya:
             with open(file_path, "rb") as f:
                 data = f.read()
-                data = data.decode()
+                data = Pigeon.decode(data)
                 exec(data, __main__.__dict__, __main__.__dict__) 
 
         else:
@@ -193,7 +211,7 @@ class Pigeon(object):
         import subprocess
         call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
         # use buildin check_output right away
-        output = subprocess.check_output(call).decode()
+        output = Pigeon.decode(subprocess.check_output(call))
     
         # check in last line for process name
         last_line = output.split('\r\n')
