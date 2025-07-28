@@ -1,0 +1,20 @@
+#!wing
+#!version=9.0
+##################################################################
+# Wing project file                                              #
+##################################################################
+[project attributes]
+proj.directory-list = [{'dirloc': loc('src/wingcarrier'),
+                        'excludes': (),
+                        'filter': '*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True},
+                       {'dirloc': loc('../../maya/modules/cascadeur/scripts/wingcarrier'),
+                        'excludes': (),
+                        'filter': '*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-list = [loc('pyproject.toml')]
+proj.file-type = 'shared'
