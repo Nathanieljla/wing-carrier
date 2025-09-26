@@ -18,7 +18,6 @@ class Pigeon(object):
             return output.decode('latin-1')
         
         
-        
     @staticmethod
     def encode(output):
         try:
@@ -26,7 +25,6 @@ class Pigeon(object):
         except UnicodeEncodeError:
             return output.encode('latin-1')        
         
-    
     
     @classmethod
     def get_temp_filename(cls):
@@ -37,13 +35,11 @@ class Pigeon(object):
         """
         return('wing_output_text.txt')
     
-    
 
     @classmethod
     def get_temp_filepath(cls):
         """Returns the full path of the temp file on the local system."""
         return os.path.join(os.environ['TMP'], cls.get_temp_filename())
-
 
 
     @classmethod
@@ -65,7 +61,6 @@ class Pigeon(object):
         return temp_path
     
     
-
     @staticmethod
     def read_file(file_path):
         """Executes the python code stored in the file path.
@@ -87,7 +82,6 @@ class Pigeon(object):
             print("No Wing-generated temp file exists: " + file_path)
             
             
-            
     @classmethod
     def post_module_import(cls, module):
         """called if a Pigeon.import_module() is successful.
@@ -104,7 +98,6 @@ class Pigeon(object):
             module.run()
             
             
-
     @classmethod
     def import_module(cls, module_name, file_path):
         """Attempts to import/reload the input module name and execute any run()
@@ -137,7 +130,6 @@ class Pigeon(object):
             cls.post_module_import(sys.modules[module_name])
     
     
-
     def can_dispatch(self):
         """Check if conditions are right to send code to application
         
@@ -189,24 +181,23 @@ class Pigeon(object):
         Returns:
             The executable path (string) if found, otherwise None.
         """
+        
+        powershell_command = [
+            "powershell.exe",
+            "-Command",
+            f"(Get-CimInstance Win32_Process -Filter 'ProcessId={pid}').ExecutablePath"
+        ]
+        
         try:
-            command = f'wmic process where processid={pid} get executablepath /value'
-            result = subprocess.run(command, capture_output=True, text=True, check=True)
-            output_lines = result.stdout.strip().split('\n')
-            
-            for line in output_lines:
-                if 'ExecutablePath=' in line:
-                    exe_path = line.split('=')[1].strip()
-                    return exe_path
-        except subprocess.CalledProcessError:
+            result = subprocess.run(powershell_command, capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except (subprocess.CalledProcessError):
             return None
-        except FileNotFoundError:
-            return None
-        return None
+    
     
     @staticmethod
     def process_id(process_name):
-        """Returns the process ID of the running cascadeur.exe or None"""
+        """Returns the process ID of the running process_name or None"""
         
         import subprocess
         call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
