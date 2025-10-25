@@ -25,8 +25,8 @@ class CascadeurPigeon(Pigeon):
         stdout = CascadeurPigeon.decode(stdout)
         stderr = CascadeurPigeon.decode(stderr)
 
-        print(stdout)
-        print(stderr)
+        #print(f"casc out:\n{stdout}")
+        #print(f"casc err:\n{stderr}")
         if proc.returncode:
             raise Exception('Command Failed:\nreturn code:{0}\nstderr:\n{1}\n'.format(proc.returncode, stderr))
 
