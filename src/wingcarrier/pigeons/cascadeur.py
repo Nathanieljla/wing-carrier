@@ -5,47 +5,13 @@ import subprocess
 import platform
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
-#PSUTILS_EXISTS = False
-
-#try:
-    #import psutil
-    #print("wing-carrier: psutil found")
-    #PSUTILS_EXISTS = True
-#except:
-    #_pigeons_path = os.path.dirname(__file__)
-    #_wingcarrier_path = os.path.dirname(_pigeons_path)    
-    #_parent_dir = os.path.dirname(_wingcarrier_path)
-    #_psutils_dir = os.path.join(_parent_dir, 'psutil')
-    #if (os.path.exists(_psutils_dir)):
-        #sys.path.append(_parent_dir)
-        #print('wing-carrier: found psutil package at sibling location')
-        #try:
-            ##I'm having psutils fail during __init__ so let's catch that
-            #import psutil
-            #PSUTILS_EXISTS = True
-        #except:
-            #print("psutils crashed on import. CascadeurPigeon functionality limited to receiving")
-        #finally:
-            #sys.path.remove(_parent_dir)
-    #else:
-        #if not IS_WINDOWS:
-            #print("Missing python package 'psutil'. CascadeurPigeon functionality limited to receiving")
-        #PSUTILS_EXISTS = False
-
-
-#CSC_EXISTS = False
-#try:
-    #import csc
-    #CSC_EXISTS = True
-#except:
-    ##this will fail when using the module in wing
-    #pass
-
 
 from .pigeon import *
 
 
 class CascadeurPigeon(Pigeon):
+    process_name = "cascadeur.exe"
+
     def __init__(self, *args, **kwargs):
         super(CascadeurPigeon, self).__init__(*args, **kwargs)
         self.known_pid = None
@@ -59,8 +25,8 @@ class CascadeurPigeon(Pigeon):
         stdout = CascadeurPigeon.decode(stdout)
         stderr = CascadeurPigeon.decode(stderr)
 
-        print(stdout)
-        print(stderr)
+        #print(f"casc out:\n{stdout}")
+        #print(f"casc err:\n{stderr}")
         if proc.returncode:
             raise Exception('Command Failed:\nreturn code:{0}\nstderr:\n{1}\n'.format(proc.returncode, stderr))
 
@@ -85,46 +51,28 @@ class CascadeurPigeon(Pigeon):
         return casc_path.strip("\"")
     
     
-    
     def get_own_process(self):
-        return self.process_id('cascadeur.exe')
-    
+        return self.process_id(self.process_name)
+
     
     def get_running_path(self):
         """Return the exe path of any running instance of cascadeur"""
-        
-        if IS_WINDOWS:
-            pid = self.get_own_process()
-            if pid is None:
-                raise ProcessLookupError
-            
-            path = self.get_exe_path_from_pid(pid)
-            return path
-            #return self._get_windows_exe_path()
-        else:
-            print("Cascadeur exe path can't be found on non-windows Operating system")
-            return ''            
-        
-        ##if not PSUTILS_EXISTS:
-            ##return self._get_windows_exe_path()
-        
-        ###we might already have a cached pid from wing.  let's try it first.
-        ##if self.known_pid:
-            ##try:
-                ##process = psutil.Process(pid=self.known_pid)
-                ##return process.exe()
-            ##except:
-                ##self.known_pid = None
 
+        try:
+            paths = self.find_exe_paths_by_name(self.process_name)
+            return paths[0] if paths else ''
 
-        ###let's search the running processes for cascadeur
-        ###ls: list = [] # since many processes can have same name it's better to make list of them
-        ##for p in psutil.process_iter(['name', 'pid']):
-            ##if p.info['name'] == 'cascadeur.exe':
-                ###we can only have one running process of cascadeur
-                ##return psutil.Process(p.info['pid']).exe()
+        except ImportError:     
+            if IS_WINDOWS:    
+                pid = self.get_own_process()
+                if pid is None:
+                    return ''
 
-        ##return ''
+                path = self.get_exe_path_from_pid(pid)
+                return path
+            else:
+                print("Cascadeur exe path can't be found on non-windows Operating system")
+                return ''            
     
 
     def can_dispatch(self):
@@ -134,20 +82,6 @@ class CascadeurPigeon(Pigeon):
         with when there's no active dispatcher found.
         """
         return self.get_own_process() is not None
-        
-        #exe_path = self.get_running_path()
-        #if not exe_path:
-            #return False
-        
-        #return self.process_id('cascadeur.exe') is not None
-        
-        #elif not PSUTILS_EXISTS:
-            ##This must be a windows machine and the exe was found via the
-            ##registry let's make sure the process is running
-            #return self.process_id('cascadeur.exe') is not None
-        
-        #else:
-            #return True
     
     
     def owns_process(self, process):
@@ -202,10 +136,17 @@ class CascadeurPigeon(Pigeon):
         exe_path = self.get_running_path()
         if not exe_path:
             print('No instance of cascadeur is running')
-            return
+            return False
+
+        success = False
+        try: 
+            command = '{}&--run-python-code&{}'.format(exe_path, command_string)
+            CascadeurPigeon.run_shell_command(command.split('&'))
+            success = True
+        except:
+            pass
         
-        command = '{}&--run-python-code&{}'.format(exe_path, command_string)
-        CascadeurPigeon.run_shell_command(command.split('&'))        
+        return success
 
 
     @staticmethod

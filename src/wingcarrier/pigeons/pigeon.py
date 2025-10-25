@@ -5,6 +5,15 @@ import subprocess
 
 import __main__
 
+
+psutil_exists = False
+try:
+    import psutil
+    psutil_exists = True
+except:
+    pass
+
+
 class Pigeon(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -193,27 +202,63 @@ class Pigeon(object):
             return result.stdout.strip()
         except (subprocess.CalledProcessError):
             return None
+        
+        
+    @staticmethod
+    def find_exe_paths_by_name(process_name):
+        """
+        Finds and returns a list of executable paths for all processes
+        matching the given name.
+        """
+        
+        if not psutil_exists:
+            raise ImportError("Can't find putil package")
+
+        paths = []
+        for proc in psutil.process_iter(['name', 'exe']):
+            try:
+                if proc.info['name'] == process_name:
+                    paths.append(proc.info['exe'])
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                # Handle processes that may terminate or be inaccessible during the loop
+                continue
+            
+        return paths    
     
     
     @staticmethod
     def process_id(process_name):
         """Returns the process ID of the running process_name or None"""
-        
-        import subprocess
-        call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
-        # use buildin check_output right away
-        output = Pigeon.decode(subprocess.check_output(call))
-    
-        # check in last line for process name
-        last_line = output.split('\r\n')
-        if len(last_line) < 3:
-            return None
-        
-        #first result is 3 because the headers
-        #or in case more than one, you can use the last one using [-2] index
-        data = " ".join(last_line[3].split()).split()  
-    
-        #return a list with the name and pid 
-        return data[1]     
+
+        pid = None
+        psutil_failed = False
+        if psutil_exists:
+            try:
+                pid = next(proc.pid for proc in psutil.process_iter(['name']) if proc.info['name'] == process_name)
+            except (StopIteration, psutil.AccessDenied, psutil.NoSuchProcess):
+                pass
+            except:
+                psutil_failed = True
+            
+        elif not psutil_exists or psutil_failed:
+            #This is "Substantially slower than using psutil
+            #wing-carrier doesn't rely on psutil due to a bug in the package once
+            #making wing-carrier unuseable.
+            import subprocess
+            call = 'TASKLIST', '/FI', 'imagename eq %s' % process_name
+            # use buildin check_output right away
+            output = Pigeon.decode(subprocess.check_output(call))
+
+            # check in last line for process name
+            last_line = output.split('\r\n')
+            if len(last_line) < 3:
+                return None
+
+            #first result is 3 because the headers
+            #or in case more than one, you can use the last one using [-2] index
+            data = " ".join(last_line[3].split()).split()
+            pid = data[1]
+
+        return pid
 
 

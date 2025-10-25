@@ -16,8 +16,8 @@ except:
 
 
 class MayaPigeon(Pigeon):
-    commandPort = 6000
-
+    command_port = 6000
+    host = "127.0.0.1"
     
     def __init__(self, *args, **kwargs):
         super(MayaPigeon, self).__init__(*args, **kwargs)
@@ -35,12 +35,7 @@ class MayaPigeon(Pigeon):
     
         # Now ping Maya over the command-port
         try:
-            # Make our socket-> Maya connection: There are different connection ways
-            # which vary between machines, so sometimes you need to try different
-            # solutions to get it to work... :-S
-            #mSocket.connect(("127.0.0.1", commandPort))
-            #mSocket.connect(("::1",commandPort)) #works!
-            m_socket.connect(("127.0.0.1", MayaPigeon.commandPort))
+            m_socket.connect((self.host, self.command_port))
 
         except Exception as e:
             print('Connection to Maya failed: {}'.format(e))
