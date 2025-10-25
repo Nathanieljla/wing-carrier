@@ -10,9 +10,8 @@ from .pigeon import *
 
 
 class CascadeurPigeon(Pigeon):
-    path_from_registry = True
-    
-    
+    process_name = "cascadeur.exe"
+
     def __init__(self, *args, **kwargs):
         super(CascadeurPigeon, self).__init__(*args, **kwargs)
         self.known_pid = None
@@ -53,26 +52,27 @@ class CascadeurPigeon(Pigeon):
     
     
     def get_own_process(self):
-        return self.process_id('cascadeur.exe')
-    
+        return self.process_id(self.process_name)
+
     
     def get_running_path(self):
         """Return the exe path of any running instance of cascadeur"""
-        
-        if IS_WINDOWS:
-            #this is faster than looking up the active process
-            if self.path_from_registry:
-                return self._get_windows_exe_path()
-                        
-            pid = self.get_own_process()
-            if pid is None:
-                raise ProcessLookupError
-            
-            path = self.get_exe_path_from_pid(pid)
-            return path
-        else:
-            print("Cascadeur exe path can't be found on non-windows Operating system")
-            return ''            
+
+        try:
+            paths = self.find_exe_paths_by_name(self.process_name)
+            return paths[0] if paths else ''
+
+        except ImportError:     
+            if IS_WINDOWS:    
+                pid = self.get_own_process()
+                if pid is None:
+                    return ''
+
+                path = self.get_exe_path_from_pid(pid)
+                return path
+            else:
+                print("Cascadeur exe path can't be found on non-windows Operating system")
+                return ''            
     
 
     def can_dispatch(self):
@@ -136,10 +136,17 @@ class CascadeurPigeon(Pigeon):
         exe_path = self.get_running_path()
         if not exe_path:
             print('No instance of cascadeur is running')
-            return
+            return False
+
+        success = False
+        try: 
+            command = '{}&--run-python-code&{}'.format(exe_path, command_string)
+            CascadeurPigeon.run_shell_command(command.split('&'))
+            success = True
+        except:
+            pass
         
-        command = '{}&--run-python-code&{}'.format(exe_path, command_string)
-        CascadeurPigeon.run_shell_command(command.split('&'))        
+        return success
 
 
     @staticmethod
