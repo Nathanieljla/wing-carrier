@@ -130,7 +130,8 @@ class Pigeon(object):
             try:
                 print('Attempting module import of:{0}'.format(module_name))
                 importlib.import_module(module_name)
-            except ModuleNotFoundError:
+            except ModuleNotFoundError as e:
+                print(f"module import failed:  reading file instead.  Error:{e}")
                 if file_path:
                     cls.read_file(file_path)
 
@@ -231,7 +232,7 @@ class Pigeon(object):
         """Returns the process ID of the running process_name or None"""
 
         pid = None
-        psutil_failed = False
+        psutil_failed = True
         if psutil_exists:
             try:
                 pid = next(proc.pid for proc in psutil.process_iter(['name']) if proc.info['name'] == process_name)

@@ -6,19 +6,27 @@ import os
 import tempfile
 from pathlib import Path
 
-import wingapi
+WING_API_EXISTS = True
+try:
+    import wingapi
+except:
+    WING_API_EXISTS = False
 
 #we need to dynamically add our dispatchers package
-_file_path = os.path.dirname(__file__)
-_file_path = os.path.dirname(_file_path)
+#_file_path = os.path.dirname(__file__)
+#_file_path = os.path.dirname(_file_path)
 
-if _file_path not in sys.path:
-    sys.path.append(_file_path)
+
+_this_dir = os.path.dirname(os.path.abspath(__file__))           # .../3rdparty/wing/wing_ide_hotkeys
+_wingcarrier_dir  = os.path.join(_this_dir, '..', '..', '..')
+
+if _wingcarrier_dir not in sys.path:
+    sys.path.append(_wingcarrier_dir)
     
 import pigeons
 import pigeons.maya
 import pigeons.cascadeur
-sys.path.remove(_file_path)
+sys.path.remove(_wingcarrier_dir)
 
 
 PSUTILS_EXISTS = False
@@ -27,7 +35,7 @@ try:
     print("wing-carrier: psutil found")
     PSUTILS_EXISTS = True
 except:
-    _parent_dir = os.path.dirname(_file_path)
+    _parent_dir = os.path.dirname(_wingcarrier_dir)
     _psutils_dir = os.path.join(_parent_dir, 'psutil')
     if (os.path.exists(_psutils_dir)):
         sys.path.append(_parent_dir)
@@ -195,7 +203,7 @@ def dispatch_carrier(carrier: pigeons.pigeon.Pigeon = None):
      
     #A previously valid carrier now might not be valid, so it's
     #ensure our target is good and replace it if not.
-    if not target_carrier or not target_carrier.can_dispatch():
+    if target_carrier is None or not target_carrier.can_dispatch():
         _ACTIVE_CARRIER = _find_best_process()
         target_carrier = _ACTIVE_CARRIER
         
@@ -225,8 +233,7 @@ def dispatch_maya():
 
 def dispatch_cascadeur():
     dispatch_carrier(carrier=_CLASS_INSTANCE_MAPPING['CascadeurPigeon'])
-        
-
+     
 
 #-----------WIN-IDE signal slots for active debug is below this line--------------
       
@@ -269,7 +276,7 @@ def _debugger_changed(*args, **kwargs):
         _DEBUG_CARRIER = None
 
 
-
-debugger = wingapi.gApplication.GetDebugger()
-debugger.Connect('new-runstate', _debugger_connected)
-debugger.Connect('current-runstate-changed', _debugger_changed)
+if WING_API_EXISTS:
+    debugger = wingapi.gApplication.GetDebugger()
+    debugger.Connect('new-runstate', _debugger_connected)
+    debugger.Connect('current-runstate-changed', _debugger_changed)

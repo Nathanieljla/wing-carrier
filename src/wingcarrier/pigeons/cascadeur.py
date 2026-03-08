@@ -151,6 +151,10 @@ class CascadeurPigeon(Pigeon):
 
     @staticmethod
     def receive(module_path, file_path):
+        #special case for when attempting to reload a module from the core cascadeur python library
+        if module_path.startswith('python.'):
+            module_path = module_path.lstrip('python.')
+            
         if not module_path:
             CascadeurPigeon.read_file(file_path)
         else:
